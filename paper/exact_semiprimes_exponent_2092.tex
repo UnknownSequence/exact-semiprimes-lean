@@ -1,0 +1,760 @@
+\documentclass[11pt,a4paper]{amsart}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[a4paper,margin=30mm]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=green!45!black,urlcolor=blue!60!black]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\e}{\varepsilon}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\1}{\mathbf 1}
+\newcommand{\cR}{\mathcal R}
+\newcommand{\cU}{\mathcal U}
+\newcommand{\cV}{\mathcal V}
+\newcommand{\cM}{\mathcal M}
+\newcommand{\Etwo}{E_2}
+\newcommand{\lean}[1]{\texttt{#1}}
+
+\title[Exact semiprimes in shorter logarithmic intervals]
+{Exact semiprimes in almost all intervals\\
+ of length \texorpdfstring{$(\log x)^{2.092}$}{(log x)\^{}2.092}}
+\date{3 October 2026. Research draft; not peer reviewed.}
+
+\begin{document}
+\emergencystretch=2em
+
+\begin{abstract}
+\sloppy
+Matom\"aki and Ter\"av\"ainen proved that almost every interval
+\((x,x+(\log x)^{2.1}]\) contains a product of exactly two primes.  We
+show that the exponent \(2.1\) can be replaced by any fixed
+\[
+ c>\frac{3688}{1763}=2.091888\ldots,
+\]
+and in particular by \(2.092\); quantitatively, almost every such
+interval contains \(\gg(\log x)^{1.092}\) products \(pq\) with
+\((\log x)^{1.091}<p\le(\log x)^{1.092}\).  This beats the
+Matom\"aki--Ter\"av\"ainen exponent \(2.1\) by more than \(0.008\), and
+it also goes below \(197/94\), the limit of their argument as it stands,
+and below \(67/32\), the value obtained by inserting the Guth--Maynard
+large-value theorem with a single threshold.  The proof keeps the
+Harman-sieve and sparse-mean-value architecture of Matom\"aki and
+Ter\"av\"ainen and changes how the large values of the two type~II
+factors are controlled.  Instead of one large-value threshold for both
+factors, we use the Guth--Maynard large-value estimates with a threshold
+that depends on the length of the polynomial: the short factor is
+powered into the range \([X^{5/6},X)\), where the Guth--Maynard
+long-polynomial bound allows every exponent below \(1/4\), and the long
+factor of length \(X^{1-\theta}\) gets the threshold
+\(\frac{3-8\theta}{10(1-2\theta)}\) (for \(1/6\le\theta\le2/11\); it is
+\(1/4\) for smaller \(\theta\)).  A three-case analysis of the
+medium large-value bins then closes the two-branch sparse argument for
+every \(a>1925/1763\), where \(P_1=(\log X)^a\).  The whole deduction,
+from the cited published theorems and five explicitly labelled
+uniform-in-parameter versions of Matom\"aki--Ter\"av\"ainen lemmas, has
+been checked in Lean~4 with Mathlib.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+Let
+\[
+ \Etwo:=\{pq:p,q\text{ prime}\}
+\]
+be the set of integers with exactly two prime factors, counted with
+multiplicity.  Unlike integers with \emph{at most} two prime factors,
+\(\Etwo\) is subject to the parity problem, and finding its elements in
+short intervals requires genuinely bilinear (type~II) information.
+
+The previous record is due to Matom\"aki and Ter\"av\"ainen.
+
+\begin{theorem}[{Matom\"aki--Ter\"av\"ainen \cite[Theorem~1.1]{MT}}]
+\label{thm:MT}
+There exist constants \(c_0>0\) and \(\delta>0\) such that, for all
+\(X\ge3\), all but \(O(X/(\log X)^\delta)\) integers \(x\in[2,X]\)
+satisfy
+\[
+ \#\bigl\{p_1p_2\in(x,x+(\log x)^{2.1}]:
+ (\log x)^{1.09}<p_1\le(\log x)^{1.1}\bigr\}
+ \ge c_0(\log x)^{1.1}.
+\]
+\end{theorem}
+
+Our main result shortens the interval.
+
+\begin{theorem}[Exponent \(2.092\)]\label{thm:clean}
+There are constants \(c_0,\delta>0\) such that, for all sufficiently
+large \(X\), all but \(O(X/(\log X)^\delta)\) integers \(x\le X\)
+satisfy
+\[
+ \#\bigl\{pq\in(x,x+(\log x)^{2.092}]:
+ p,q\text{ prime},\ (\log x)^{1.091}<p\le(\log x)^{1.092}\bigr\}
+ \ge c_0(\log x)^{1.092}.
+\]
+In particular, almost every interval \((x,x+(\log x)^{2.092}]\)
+contains an element of \(\Etwo\).
+\end{theorem}
+
+The exponent \(2.092\) is a convenient decimal; the method gives the
+following.
+
+\begin{theorem}[Parameter form]\label{thm:parameter}
+For every fixed
+\[
+ c>\frac{3688}{1763}=1+\frac{1925}{1763}=2.0918888\ldots,
+\]
+almost every interval \((x,x+(\log x)^c]\) contains an element of
+\(\Etwo\); the number of exceptional integers \(x\le X\) is
+\(O_c(X/(\log X)^{\delta_c})\) for some \(\delta_c>0\).  If moreover
+\(c\le21/10\) and \(\Delta>0\) satisfies \(c-1-\Delta>1925/1763\), then,
+outside an exceptional set of the same type, the interval
+\((x,x+(\log x)^c]\) contains \(\gg_{c,\Delta}(\log x)^{c-1}\) products
+\(pq\) with \((\log x)^{c-1-\Delta}<p\le(\log x)^{c-1-\Delta/2}\).
+\end{theorem}
+
+\subsection*{How this compares with Matom\"aki--Ter\"av\"ainen}
+Theorem~\ref{thm:clean} beats the published exponent \(2.1\) of
+\cite[Theorem~1.1]{MT}: the interval length drops by the factor
+\[
+ \frac{(\log x)^{2.1}}{(\log x)^{2.092}}=(\log x)^{0.008}\longrightarrow\infty ,
+\]
+and the threshold \(3688/1763\) is below \(2.1\) by
+\[
+ \frac{21}{10}-\frac{3688}{1763}=\frac{143}{17630}>0.0081 .
+\]
+The improvement is not an artefact of the decimals chosen in \cite{MT}.
+Their argument, optimized as it stands (Jutila's large-value threshold
+\(49/206\) in \cite[Lemma~4.1]{MT} and the two sparse branches of
+\cite[Section~5.3]{MT}), reaches \(c>1+103/94=197/94\) and no further;
+see the last display of \cite[Section~5.3]{MT}.  Replacing Jutila's
+estimate by the Guth--Maynard large-value theorem with a single threshold
+\(17/70\) for both type~II factors gives \(c>67/32\).  The present paper
+goes below both:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Argument & large-value input & admissible \(c\)\\
+\midrule
+\cite[Thm.~1.1]{MT}, as printed & Jutila, \(49/206\) & \(c=2.1\)\\
+\cite{MT}, optimized & Jutila, \(49/206\) & \(c>197/94=2.09574\ldots\)\\
+single threshold & Guth--Maynard, \(17/70\) & \(c>67/32=2.09375\)\\
+\textbf{this paper} & \textbf{Guth--Maynard, by length} & \(\boldsymbol{c>3688/1763=2.09188\ldots}\)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent In the language of \cite{MT}: a pair of polynomial lengths
+\(M_1=X^\theta\), \(M_2=X^{1-\theta}\) with \(\theta\le2/11\) never
+needs the worst threshold \(17/70\) on \emph{both} factors.  The short
+factor can always be powered into \([X^{5/6},X)\), and the long factor
+needs \(17/70\) only when \(\theta=2/11\) exactly.  Section~\ref{sec:bins}
+turns this observation into the bound \(a>1925/1763\).
+
+\subsection*{Formal verification}
+The deduction of Theorems~\ref{thm:clean} and~\ref{thm:parameter} has
+been formalized in Lean~4 with Mathlib (Section~\ref{sec:lean}).  The
+Lean theorems take two explicit hypothesis bundles: published theorems
+transcribed in their printed ranges (Guth--Maynard, Heath-Brown,
+Hildebrand--Tenenbaum, Matom\"aki--Ter\"av\"ainen, Iwaniec--Kowalski,
+\dots), and five labelled uniform-in-parameter versions of
+Matom\"aki--Radziwi\l\l, Ter\"av\"ainen and Matom\"aki--Ter\"av\"ainen
+lemmas that are printed only for \(c=2.1\).  All of the new mathematics
+of this paper (Lemma~\ref{lem:refined}, Proposition~\ref{prop:bins} and
+everything after) is proved in Lean, not assumed.
+
+\subsection*{Status and provenance}
+This is a research draft and has not been refereed.  An earlier draft,
+generated with ChatGPT (OpenAI), obtained \(c>67/32\) with a single
+threshold \(17/70\); the length-dependent refinement, the present
+write-up and the Lean formalization of both were produced with Claude
+(Anthropic).  Readers should check the argument independently before
+relying on it.
+
+\section{Notation}\label{sec:notation}
+
+All logarithms are natural; \(p,q\) denote primes and \(n\sim N\) means
+\(N<n\le2N\).  We write \(A\ll B\) or \(A=O(B)\) if \(|A|\le CB\) for a
+constant \(C\) depending only on the displayed subscripts and on fixed
+parameters.  The parameters are chosen in the following order: first the
+gap \(\nu>0\) between \(a\) and \(1925/1763\); then the analytic
+parameter \(\e>0\), small in terms of \(\nu\) and of the absolute
+constant \(C_1\) of Proposition~\ref{prop:typeII}; finally \(X\) is
+taken large in terms of everything else.
+
+A sequence \((a_n)\) is \((A_0,B)\)-\emph{divisor bounded} if
+\(|a_n|\le A_0d(n)^B\) on its support, with \(A_0\ge1\), \(B\ge0\)
+independent of the principal scales.  If \(a\) is \((A_0,B)\)-divisor
+bounded, then the coefficients of the \(\ell\)-fold Dirichlet
+convolution of \(a\) restricted to a dyadic range are
+\((A_0^\ell,B\ell+\ell-1)\)-divisor bounded: the first \(\ell-1\)
+factors of an ordered factorization of \(n\) are divisors of \(n\).
+
+For a Dirichlet polynomial \(A\), a height \(T\) and a level \(V>0\) we
+write
+\[
+ \mathcal L(A;T,V)=\{t\in[0,T]:|A(1+it)|>V\}.
+\]
+
+\section{The framework of Matom\"aki and Ter\"av\"ainen}
+\label{sec:framework}
+
+We recall the part of \cite{MT} that we use, with the parameters left
+free.  Let \(c\in(2,21/10]\), \(h=(\log X)^c\), and let
+\(P_1=(\log X)^a\) with \(1<a\le c-1\le 11/10\).  Harman's sieve with
+\(z=X^{2/11}\) provides a minorant \(\rho^-(n)\le\1_{\mathbb P}(n)\)
+\cite[(2.3)]{MT} with positive average on long intervals
+\cite[Theorem~2.1(ii)]{MT}.  By Perron's formula
+\cite[Lemma~3.1]{MT} (after \cite[Lemma~14]{MR} and \cite[Lemma~1]{Ter}),
+the variance of \(\sum_{x<pn\le x+h,\,p\sim P_1}\rho^-(n)\) is controlled
+by mean values
+\[
+ \int_{X^{1/1000}}^{T}|P_1(1+it)|^2|P(1+it)|^2\dd t,\qquad
+ P_1(s)=\sum_{p\sim P_1}p^{-s},\quad
+ P(s)=\sum_{X/(2P_1)<n\le4X/P_1}\frac{\rho^-(n)}{n^s}.
+\]
+On the set
+\begin{equation}\label{eq:Udef}
+ \cU=\bigl\{t\in[X^{1/1000},X]:|P_1(1+it)|\ge P_1^{-\e/10}\bigr\}
+\end{equation}
+the polynomial \(P\) is decomposed by \cite[Proposition~2.2]{MT} into
+\(O(\exp((\log\log X)^5))\) type~I, type~I/II and type~II convolutions
+and a negligible remainder.  The type~I and type~I/II components are
+estimated in \cite[Sections~5.1--5.2]{MT}; their only dependence on
+\(a\) is through the power savings
+\(X^{-(1-1/a)/20+O(\e)}\) and \(X^{-\e(1-1/a)/4+\e/100+O(\e^2)}\), which
+remain power savings for \(a\ge1925/1763\) because
+\[
+ \frac{1-1/a}{4}\ge\frac{1-1763/1925}{4}=\frac{81}{3850}>\frac1{100}.
+\]
+
+A type~II component is \(F=M_1M_2\), where
+\[
+ M_1(s)=\sum_{m\sim M_1}\frac{\alpha_m}{m^s},\qquad
+ M_2(s)=\sum_{n\sim M_2}\frac{\beta_n}{n^s},\qquad
+ M_1M_2\asymp\frac{X}{P_1},\qquad X^{\e/2}\le M_1\le X^{2/11},
+\]
+with divisor-bounded coefficients and \(\alpha\) of the structured form
+\cite[(2.11)]{MT}.  We write \(\theta=\log M_1/\log X\in[\e/2,2/11]\);
+then \(M_2=X^{1-\theta-o(1)}\).  The target is
+\begin{equation}\label{eq:component-target}
+ \int_{\cU}|P_1(1+it)|^2|M_1(1+it)M_2(1+it)|^2\dd t
+ \ll\exp\bigl(-(\log\log X)^6\bigr).
+\end{equation}
+As in \cite[Section~5.3]{MT}, \(\cU\) is split into the set \(\cU_1\)
+where \(|M_j(1+it)|\ge M_j^{-\sigma_*}\) for some \(j\), the set
+\(\cU_3\) where some \(|M_j(1+it)|<X^{-1}\), and the rest \(\cU_2\),
+which is cut into \(O((\log X)^2)\) bins
+\begin{equation}\label{eq:Vdef}
+ \cV_{\sigma_1,\sigma_2}=\bigl\{t\in\cU_2:
+ M_j^{-\sigma_j}<|M_j(1+it)|\le eM_j^{-\sigma_j}\ (j=1,2)\bigr\},
+ \qquad \sigma_1,\sigma_2>\sigma_* .
+\end{equation}
+The set \(\cU_1\) is handled by the type~II estimate
+(Proposition~\ref{prop:typeII}) together with the Vinogradov--Korobov
+bound \cite[(5.6)]{MT}
+\(\sup_{t\in\cU}|M_1(1+it)|\ll\exp(-2(\log X)^{1/10})\); \(\cU_3\) is
+trivial.  Everything therefore reduces to the bin estimate
+\begin{equation}\label{eq:Vtarget}
+ |\cV_{\sigma_1,\sigma_2}|\ll M_1^{2\sigma_1}M_2^{2\sigma_2}X^{-\e^2/4},
+\end{equation}
+uniformly in \(\sigma_1,\sigma_2>\sigma_*\) and in the component.  This
+is where the exponent \(a\), and hence \(c\), is decided.
+
+\section{Length-dependent large-value thresholds}\label{sec:largevalues}
+
+We use two results of Guth and Maynard.
+
+\begin{theorem}[{Guth--Maynard \cite[Theorem~1.1]{GM}}]\label{thm:GM}
+Let \(|b_n|\le1\) and let \(t_1,\dots,t_R\in[0,T]\) be one-spaced with
+\(|\sum_{N<n\le2N}b_nn^{it_r}|\ge V\) for all \(r\).  Then
+\[
+ R\le T^{o(1)}\bigl(N^2V^{-2}+N^{18/5}V^{-4}+TN^{12/5}V^{-4}\bigr).
+\]
+\end{theorem}
+
+\begin{theorem}[{Guth--Maynard \cite[Proposition~12.1]{GM}}]
+\label{thm:GM-long}
+Under the hypotheses of Theorem~\ref{thm:GM}, if
+\(T^{5/6}\le N\le T\) and \(V=N^{\varrho}\) with \(\varrho\ge7/10\),
+then
+\[
+ R\le T^{o(1)}\bigl(N^{2-2\varrho}+T^{1/2}N^{3-4\varrho}
+ +T^{(30\varrho-21)/5}N^{(46-60\varrho)/5}\bigr).
+\]
+\end{theorem}
+
+For \(9/11\le\eta\le1\) put
+\[
+ s(\eta)=
+ \begin{cases}
+ \dfrac{8\eta-5}{10(2\eta-1)}, & 9/11\le\eta\le5/6,\\[2mm]
+ \dfrac14, & 5/6\le\eta\le1,
+ \end{cases}
+ \qquad
+ s\Bigl(\frac9{11}\Bigr)=\frac{17}{70},\quad s\Bigl(\frac56\Bigr)=\frac14 .
+\]
+The function \(s\) is increasing and continuous.  The value \(17/70\) used
+in the single-threshold argument is its minimum, attained only at the
+shortest length \(T^{9/11}\).
+
+\begin{lemma}[Refined density estimate]\label{lem:refined}
+Let \(0<\e\le1/1000\), \(A_0\ge1\), \(B\ge0\).  There are \(C,T_0\)
+such that the following holds for \(T\ge T_0\).  Let
+\(\eta_0\in[9/11,5/6]\), let \(N\) be an integer with
+\(T^{\eta_0-10\e}\le N\le T^{1-\e/10}\), let \(A(s)=\sum_{n\sim N}a_nn^{-s}\)
+with \((A_0,B)\)-divisor bounded coefficients, and let \(\sigma\) satisfy
+\begin{equation}\label{eq:sigma-range}
+ 10\e\le\sigma\le\frac14-20\e,\qquad
+ \sigma(4\eta_0-2)+20\e\le\frac{8\eta_0}{5}-1 .
+\end{equation}
+Then
+\[
+ \bigl|\mathcal L(A;T,N^{-\sigma})\bigr|\le C\,T^{2\sigma-\e^2/2}.
+\]
+\end{lemma}
+
+The second condition in \eqref{eq:sigma-range} says
+\(\sigma\le s(\eta_0)-O(\e)\) when \(\eta_0<5/6\); at \(\eta_0=5/6\) it
+is implied by the first.
+
+\begin{proof}
+Write \(N=T^\eta\).  Normalize as in \cite[Lemma~4.1]{MT}: with a fixed
+\(0<\varpi\le\e^2/1000\), choose \(D=D(B,\varpi)\) with \(d(n)^B\le Dn^\varpi\)
+and put \(b_n=\frac{N}{n}\,a_n/(A_0D2^\varpi N^\varpi)\), so that
+\(|b_n|\le1\) and \(|A(1+it)|>N^{-\sigma}\) implies
+\(|\sum b_nn^{-it}|\ge N^{1-\sigma-2\varpi}\) for large \(T\).  Pass from
+measure to one-spaced sets by the standard local discretization, and
+reflect \(t\mapsto T-t\) if needed.
+
+\emph{Case \(\eta\le5/6\).}  Theorem~\ref{thm:GM} with
+\(V=N^{1-\sigma-2\varpi}\) gives
+\[
+ R\le T^{o(1)}\bigl(N^{2\sigma+4\varpi}+N^{4\sigma-2/5+8\varpi}
+ +TN^{4\sigma-8/5+8\varpi}\bigr).
+\]
+Compare each exponent of \(T\) with \(2\sigma\).  The first is
+\(2\sigma\eta\le2\sigma-2\sigma\e/10\le2\sigma-2\e^2\).  For the second,
+since \(4\eta-2>0\) and \(\sigma\le1/4-20\e\),
+\[
+ \eta(4\sigma-\tfrac25)-2\sigma=\sigma(4\eta-2)-\tfrac{2\eta}5
+ \le\tfrac{3\eta}5-\tfrac12-20\e(4\eta-2)<-20\e,
+\]
+using \(\eta\le5/6\).  The third exponent
+\(1+\eta(4\sigma-8/5)\) is decreasing in \(\eta\), so it is at most its
+value at \(\eta=\eta_0-10\e\):
+\[
+ 1+\eta_0\bigl(4\sigma-\tfrac85\bigr)+10\e\bigl(\tfrac85-4\sigma\bigr)
+ \le 2\sigma-20\e+16\e=2\sigma-4\e
+\]
+by \eqref{eq:sigma-range}.
+
+\emph{Case \(\eta\ge5/6\).}  Theorem~\ref{thm:GM-long} with
+\(\varrho=1-\sigma-2\varpi\ge7/10\) gives the exponents
+\(2\sigma\eta+O(\varpi)\),
+\[
+ \tfrac12+\eta(4\sigma-1)+O(\varpi)
+ =2\sigma-(2\eta-1)\bigl(\tfrac12-2\sigma\bigr)+O(\varpi)
+ \le2\sigma-\tfrac{80}3\e+O(\varpi),
+\]
+and
+\begin{align*}
+ \tfrac{9-30\sigma}5+\eta\,\tfrac{60\sigma-14}5+O(\varpi)
+ &=2\sigma+\tfrac15\bigl(9-14\eta-\sigma(40-60\eta)\bigr)+O(\varpi)\\
+ &\le2\sigma-\tfrac15\bigl(1-\eta+20\e(60\eta-40)\bigr)+O(\varpi),
+\end{align*}
+where we used \(\sigma\le1/4-20\e\) and \(60\eta-40>0\).  All savings
+are at least \(2\e^2-O(\varpi)\), and the \(T^{o(1)}\) and normalization
+losses are absorbed for large \(T\).
+\end{proof}
+
+\begin{remark}
+Lemma~\ref{lem:refined} is exactly what the two Guth--Maynard bounds
+give; nothing beyond \cite{GM} is used.  The single-threshold argument
+uses only the value \(s(9/11)=17/70\) and applies it to both type~II
+factors, whatever their lengths.
+\end{remark}
+
+\section{The type~II estimate with threshold \texorpdfstring{\(17/70\)}{17/70}}
+\label{sec:typeII}
+
+Lemma~\ref{lem:refined} with \(\eta_0=9/11\) and \(\sigma\le17/70-O(\e)\)
+covers every length in \([T^{9/11-10\e},T^{1-\e/10}]\).  Inserting it
+into the proof of \cite[Proposition~4.2]{MT} in place of
+\cite[Lemma~4.1]{MT} gives the following.
+
+\begin{proposition}[Type~II, threshold \(17/70\)]\label{prop:typeII}
+There is an absolute constant \(C_1\) such that the following holds for
+\(\e>0\) small.  Let \(M_1,M_2\) be Dirichlet polynomials of lengths
+\(M_1,M_2\) with divisor-bounded coefficients,
+\((\log T)^{-L}\le M_1M_2/T\le(\log T)^L\) and
+\(T^{\e/5}\le M_1\le T^{2/11+\e}\), and put
+\(\sigma_*=17/70-C_1\e\).  If \(\cU'\subset[0,T]\) is measurable and on
+\(\cU'\) one has \(|M_1(1+it)|\ge M_1^{-\sigma_*}\) or
+\(|M_2(1+it)|\ge M_2^{-\sigma_*}\), then
+\[
+ \int_{\cU'}|M_1(1+it)M_2(1+it)|^2\dd t
+ \ll T^{-\kappa_1}+(\log T)^{C_2}\sup_{t\in\cU'}|M_1(1+it)|^2
+\]
+for some \(\kappa_1=\kappa_1(\e,B)>0\) and \(C_2=C_2(\e,A_0,B,L)\).
+\end{proposition}
+
+\begin{proof}
+As in \cite[Proposition~4.2]{MT}: the large-value parts \(\cR_1\),
+\(\cR_3\) are unchanged; in the middle range one powers \(M_1\) into
+\([T^{5/6-\e},T^{1-\e/2}]\) when \(\tau_1\le\tau_2\), or applies the
+density bound to \(M_2\) (of length in \([T^{9/11-2\e},T^{1-\e/6}]\))
+when \(\tau_2<\tau_1\), now with Lemma~\ref{lem:refined} at
+\(\eta_0=9/11\) instead of Jutila's estimate.
+\end{proof}
+
+This is the large-value set \(\cU_1\) of Section~\ref{sec:framework}.
+The new work is in the bins \(\cV_{\sigma_1,\sigma_2}\), where both
+\(\sigma_j>\sigma_*\).
+
+\section{The medium bins}\label{sec:bins}
+
+Fix \(\nu>0\) and let
+\[
+ \frac{1925}{1763}+\nu\le a\le\frac{11}{10},\qquad u=1-\frac1a .
+\]
+Then \(u\ge162/1925+\frac{10}{11}\cdot\frac{1763}{1925}\nu\).  Consider
+one bin \(\cV=\cV_{\sigma_1,\sigma_2}\) with \(\sigma_1,\sigma_2>\sigma_*\),
+and write
+\[
+ \theta=\frac{\log M_1}{\log X}\in\Bigl[\frac\e2,\frac2{11}\Bigr],
+ \qquad
+ \phi=\frac{\log M_2}{\log X},\qquad
+ 1-\theta-o(1)\le\phi\le1-\theta .
+\]
+
+\subsection{The sparse branches}
+We recall \cite[Section~5.3]{MT}.  With
+\(k=\lfloor\log X/\log(2P_1)\rfloor\) and \(M=P_1^k=X^{1-o(1)}\), the
+sparse polynomial \(Q=P_1^k/k!\) has
+\(|Q(1+it)|\ge M^{-\e/10-1/a+o(1)}\) on \(\cU\) and support of size
+\(M^{1-1/a+o(1)}\) by Hildebrand--Tenenbaum \cite{HT}.  Heath-Brown's
+sparse mean value theorem \cite[Theorem~4]{HB}, applied to \(Q\) and
+\(M_2\), proves \eqref{eq:Vtarget} unless
+\begin{equation}\label{eq:residual}
+ \theta(1-2\sigma_1)\ge u-O(\e)
+ \qquad\text{(the first branch fails).}
+\end{equation}
+Applied to \(Q\) and \(M_1^5\) (the first term of \cite[Lemma~3.4]{MT} is
+absorbed because \(M_1^5\le X^{10/11}\le X^{1/a}\)), it proves
+\eqref{eq:Vtarget} whenever
+\begin{equation}\label{eq:key}
+ K(\theta,\sigma_1,\sigma_2):=(5-8\sigma_1)\theta+2\sigma_2(1-\theta)
+ >\frac1a+O(\e).
+\end{equation}
+Note the identity
+\begin{equation}\label{eq:identity}
+ K(\theta,\sigma_1,\sigma_2)=4\theta(1-2\sigma_1)+\theta(1-2\sigma_2)+2\sigma_2 .
+\end{equation}
+Under \eqref{eq:residual} we have \(\theta\ge1/7\), since
+\(1-2\sigma_1<1-2\sigma_*\le18/35+O(\e)\) and \(u\ge162/1925\).
+
+\subsection{The density cases}
+From now on assume that the first branch fails, so that \eqref{eq:residual}
+holds and \(1/7\le\theta\le2/11\).
+\begin{enumerate}[label=(\alph*),leftmargin=*]
+\item \emph{\(\sigma_1\le\sigma_2\) and \(\sigma_1<1/4-O(\e)\).}  Take
+\(\ell=6\) if \(6\theta\le1-\e/5\) and \(\ell=5\) otherwise; since
+\(1/7\le\theta\le2/11\), the \(\ell\) dyadic pieces of \(M_1^\ell\) have
+lengths in \([M_1^\ell,2^\ell M_1^\ell]\subset[X^{5/6-O(\e)},X^{1-\e/10}]\).
+On \(\cV\), \(|M_1^\ell|\) exceeds \((M_1^\ell)^{-\sigma_1}\), so one of the
+pieces exceeds \((M_1^\ell)^{-\sigma_1-o(1)}\).  Lemma~\ref{lem:refined}
+with \(\eta_0=5/6\) and \(3\e/2\) in place of \(\e\) gives
+\(|\cV|\ll X^{2\sigma_1-9\e^2/16}\le M_1^{2\sigma_1}M_2^{2\sigma_2}X^{-\e^2/4}\),
+because \(M_1^{2\sigma_1}M_2^{2\sigma_2}\ge(M_1M_2)^{2\sigma_1}
+=X^{2\sigma_1-o(1)}\).
+\item \emph{\(\sigma_2<\sigma_1\) and \(\sigma_2<s(1-\theta)-O(\e)\).}
+Apply Lemma~\ref{lem:refined} (with \(3\e/2\) in place of \(\e\)) directly
+to \(M_2\), whose length is \(X^\phi\), with
+\(\eta_0=\max(9/11,\min(5/6,1-\theta))\); in terms of \(\theta\) the
+threshold is
+\[
+ s_2(\theta):=s(1-\theta)=
+ \begin{cases}
+ 1/4, & \theta\le1/6,\\[1mm]
+ \dfrac{3-8\theta}{10(1-2\theta)}, & 1/6\le\theta\le2/11,
+ \end{cases}
+ \qquad s_2\Bigl(\frac2{11}\Bigr)=\frac{17}{70}.
+\]
+This gives \(|\cV|\ll X^{2\sigma_2-9\e^2/8}\), which suffices as in (a).
+\end{enumerate}
+
+\subsection{The sparse cases}
+If neither (a) nor (b) applies and the first branch fails, the second
+branch closes.
+
+\begin{proposition}\label{prop:bins}
+Assume \eqref{eq:residual} and that neither (a) nor (b) applies.  Then
+\eqref{eq:key} holds, provided \(\e\) is small in terms of \(\nu\).
+\end{proposition}
+
+\begin{proof}
+There are three regions.
+
+\emph{Region A: \(\sigma_1\le\sigma_2\), so \(\sigma_1\ge1/4-O(\e)\).}
+By \eqref{eq:identity},
+\(K=2\sigma_1+5\theta(1-2\sigma_1)+2(\sigma_2-\sigma_1)(1-\theta)
+ \ge\frac12+5u-O(\e)\).
+
+\emph{Region B1: \(\sigma_2<\sigma_1\) and \(\sigma_2\ge1/4-O(\e)\).}
+Since \(\theta(1-2\sigma_2)\ge\theta(1-2\sigma_1)\), \eqref{eq:identity}
+gives \(K\ge5\theta(1-2\sigma_1)+2\sigma_2\ge\frac12+5u-O(\e)\).
+
+In both regions \(K>1/a=1-u\) as soon as \(6u>\frac12\), i.e.\
+\(a>12/11\); and \(1925/1763>12/11\).
+
+\emph{Region B2: \(\sigma_2<\sigma_1\), \(\sigma_2<1/4-O(\e)\) and
+\(\sigma_2\ge s_2(\theta)-O(\e)\).}  Then \(\theta\ge1/6\) (otherwise
+\(s_2(\theta)=1/4\)), and
+\(\sigma_2(2-4\theta)\ge\frac35-\frac85\theta-O(\e)\).  By
+\eqref{eq:identity} and \eqref{eq:residual},
+\[
+ K\ge4u+\theta+2\sigma_2(1-\theta)-O(\e).
+\]
+Multiplying by \(1-2\theta>0\),
+\begin{align*}
+ (1-2\theta)\bigl(\theta+2\sigma_2(1-\theta)\bigr)
+ &\ge\theta(1-2\theta)+(1-\theta)\Bigl(\frac35-\frac85\theta\Bigr)-O(\e)\\
+ &=\frac{223}{385}(1-2\theta)+\frac2{385}(2-11\theta)(7\theta+2)-O(\e),
+\end{align*}
+and \((2-11\theta)(7\theta+2)\ge0\) because \(\theta\le2/11\).  Hence
+\(\theta+2\sigma_2(1-\theta)\ge\frac{223}{385}-O(\e)\) and
+\[
+ K\ge4u+\frac{223}{385}-O(\e)>1-u
+ \iff 5u>\frac{162}{385}+O(\e)
+ \iff \frac1a<\frac{1763}{1925}-O(\e),
+\]
+which holds since \(a\ge1925/1763+\nu\).
+\end{proof}
+
+Combining (a), (b), Proposition~\ref{prop:bins} and the first sparse
+branch proves \eqref{eq:Vtarget} for every bin, uniformly for
+\(a\in[1925/1763+\nu,11/10]\).
+
+\begin{remark}[The extremal configuration]
+The constant \(1925/1763\) is attained.  At
+\[
+ \theta=\frac2{11},\qquad\sigma_2=\frac{17}{70}=s_2\Bigl(\frac2{11}\Bigr),
+ \qquad\sigma_1=\frac{517}{1925},\qquad a=\frac{1925}{1763},
+\]
+the first branch is exactly saturated, \(\theta(1-2\sigma_1)=\frac{162}{1925}=u\),
+and so is the second:
+\[
+ (5-8\sigma_1)\theta+2\sigma_2(1-\theta)
+ =\frac{998}{1925}+\frac{153}{385}=\frac{1763}{1925}=\frac1a .
+\]
+Neither density case applies there (\(\sigma_2<\sigma_1\) and \(\sigma_2\)
+is exactly at the threshold of \(M_2\)).  If the long factor could also
+use the threshold \(1/4\) at length \(X^{9/11}\), Region~B2 would
+disappear and the argument would give \(a>12/11\), i.e.\ \(c>23/11\).
+\end{remark}
+
+\section{Completion of the proof}\label{sec:completion}
+
+With \eqref{eq:Vtarget} in hand, the remainder is the argument of
+\cite[Sections~2 and~5]{MT} with the parameters left free.
+
+\subsection{The parameterized reduction}
+
+\begin{proposition}\label{prop:variance}
+Fix \(\nu>0\) and \(c\in(2,21/10]\), and let
+\(1925/1763+\nu\le a\le\min(11/10,c-1)\), \(P_1=(\log X)^a\),
+\(h=(\log X)^c\) and \(h_1=X^{99/100}\).  There is \(\e_0>0\),
+depending only on \(\nu\) and \(c\), such that, uniformly in \(a\),
+\[
+ \frac1X\int_X^{2X}\Bigl|\frac1h\sum_{\substack{x<pn\le x+h\\p\sim P_1}}\rho^-(n)
+ -\frac1{h_1}\sum_{\substack{x<pn\le x+h_1\\p\sim P_1}}\rho^-(n)\Bigr|^2\dd x
+ \ll(\log X)^{-2-\e_0}.
+\]
+\end{proposition}
+
+\begin{proof}
+By the Perron/Parseval reduction \cite[Lemma~3.1]{MT} (whose proof is
+uniform in \(a\) and \(c\)) it suffices to prove
+\[
+ \int_{X^{1/1000}}^T|P_1(1+it)P(1+it)|^2\dd t
+ \ll\frac{T}{X/h}\,(\log X)^{-2-\e_0}\qquad(T\ge X/h).
+\]
+For \(T\ge X\) this follows from the mean value theorem and the fact that
+each \(n\) has at most one prime factor \(p\sim P_1\).  On the complement
+of \(\cU\) in \([X^{1/1000},X]\) one uses \(|P_1(1+it)|<P_1^{-\e/10}\),
+the improved mean value theorem \cite[Lemma~3.3]{MT} and the
+rough-number sieve bound of \cite[Section~5]{MT}.  On \(\cU\) one uses
+the decomposition \cite[Proposition~2.2]{MT}.  The type~I and type~I/II
+components are bounded as in \cite[Sections~5.1, 5.2]{MT}: the power
+savings \(X^{-(1-1/a)/20+O(\e)}\) and
+\(X^{-\e(1-1/a)/4+\e/100+O(\e^2)}\) left there are genuine because
+\[
+ \frac{1-1/a}{4}\ge\frac{1-1763/1925}{4}=\frac{81}{3850}>\frac1{100}.
+\]
+The type~II components are bounded by Proposition~\ref{prop:typeII} on
+\(\cU_1\), trivially on \(\cU_3\), and by \eqref{eq:Vtarget},
+Section~\ref{sec:bins}, on the \(O((\log X)^2)\) bins of \(\cU_2\).
+\end{proof}
+
+\subsection{From variance to exact semiprimes}
+
+Fix \(c\in(3688/1763,21/10]\) and \(\Delta>0\) with
+\(c-1-\Delta>1925/1763\), and take the disjoint dyadic prime blocks
+\(p\sim P_1\) with
+\((\log X)^{c-1-3\Delta/4}<P_1<2P_1\le(\log X)^{c-1-5\Delta/8}\).
+For each block, \(a=\log P_1/\log\log X\) lies in
+\([1925/1763+\nu,11/10]\) for some \(\nu=\nu(c,\Delta)>0\), so
+Proposition~\ref{prop:variance} applies uniformly.  Summing over the
+\(\asymp\log\log X\) blocks with Cauchy--Schwarz, the long-interval lower
+bound \cite[Theorem~2.1(ii)]{MT}, Chebyshev's inequality and
+\(\rho^-\le\1_{\mathbb P}\) give, for all \(x\in[X,2X]\) outside a set of
+measure \(O(X/(\log X)^\delta)\),
+\[
+ \#\{pn\in(x,x+h]:p,n\text{ prime},\ p\text{ in a block}\}
+ \gg_{c,\Delta}(\log X)^{c-1}.
+\]
+Three routine passages complete the proof of Theorem~\ref{thm:parameter}
+for \(c\le21/10\): from real to integer \(x\) (using the same bound for
+\(h/2\)); from \([X,2X]\) to \([1,X]\) (dyadic summation preserves the
+exponent \(\delta\)); and from the blocks to the window
+\[
+ \bigl((\log x)^{c-1-\Delta},(\log x)^{c-1-\Delta/2}\bigr].
+\]
+For \(c>21/10\) the existence statement follows from the case
+\(c=21/10\).
+
+\subsection{The value \texorpdfstring{\(2.092\)}{2.092}}
+Take \(c=2.092=523/250\) and \(\Delta=10^{-4}\).  Then
+\[
+ c-1-\Delta=1.0919=\frac{10919}{10000},\qquad
+ \frac{10919}{10000}-\frac{1925}{1763}=\frac{197}{17630000}>0,
+\]
+so Theorem~\ref{thm:parameter} applies.  Its prime window satisfies
+\[
+ \bigl((\log x)^{1.0919},(\log x)^{1.09195}\bigr]
+ \subset\bigl((\log x)^{1.091},(\log x)^{1.092}\bigr],
+\]
+and its lower bound is \(\gg(\log x)^{1.092}\).  This proves
+Theorem~\ref{thm:clean}.
+
+\section{The Lean formalization}\label{sec:lean}
+
+The accompanying Lean~4 project (Lean~4.34.0, Mathlib v4.34.0) proves
+\begin{verbatim}
+theorem ExactSemiprimes.mainTheorem_exponent_2092
+    (inputs : ExternalInputs) (ext : ParameterExtensionInputs) :
+    Results.CleanTheoremStatement      -- Theorem 1.2
+theorem ExactSemiprimes.mainTheorem_parameter
+    (inputs : ExternalInputs) (ext : ParameterExtensionInputs) :
+    Results.ParameterTheoremStatement  -- Theorem 1.3
+\end{verbatim}
+\begin{itemize}[leftmargin=*]
+\item \lean{ExternalInputs} collects published theorems, each transcribed
+  in its printed parameter range: Guth--Maynard's Theorem~1.1 and
+  Proposition~12.1, Heath-Brown's sparse mean value theorem,
+  Hildebrand--Tenenbaum's smooth-number bound, the decomposition,
+  equations and lemmas of \cite{MT} that are used verbatim, the mean
+  value theorem of Iwaniec--Kowalski, and a few others.
+\item \lean{ParameterExtensionInputs} collects five labelled statements
+  that are printed only at \(c=2.1\) (or \(a\in[1.0999,1.1]\)) and whose
+  printed proofs are uniform in the parameters: the Parseval/Perron
+  reduction \cite[Lemma~14]{MR}, \cite[Lemma~1]{Ter}, \cite[Lemma~3.1]{MT};
+  the long-interval lower bound \cite[Theorem~2.1(ii)]{MT}; the rough-pair
+  sieve bound of \cite[Section~5]{MT}; and the type~I and type~I/II
+  bounds of \cite[Sections~5.1, 5.2]{MT} for
+  \(a\in[1925/1763,11/10]\).
+\item Everything else is proved: Lemma~\ref{lem:refined}
+  (\lean{Hybrid/RefinedDensity.lean}), Proposition~\ref{prop:typeII},
+  the two sparse branches, the three cases of Section~\ref{sec:bins}
+  (\lean{Final/TypeIIDensityBins.lean}, \lean{Final/TypeIIComponent.lean}),
+  the Perron target, the variance and counting arguments and the
+  passage to Theorems~\ref{thm:clean} and~\ref{thm:parameter}.
+\item There is no \lean{sorry} and no project \lean{axiom}.  The
+  command \lean{\#print axioms} reports only the three standard axioms
+  \lean{propext}, \lean{Classical.choice} and \lean{Quot.sound}.
+\end{itemize}
+The file \lean{ASSUMPTIONS.md} of the project lists every hypothesis
+with its source.
+
+\section*{Acknowledgements}
+
+Siddharth Iyer was used as a ``meat proxy''\footnote{A \emph{meat proxy}
+is a human who serves as the physical go-between for AI systems, much as a
+network proxy forwards traffic: typing or pasting prompts in, carrying the
+outputs from one model or tool to another, moving files around, and
+running whatever the systems cannot run for themselves.} for this project.
+He collected the outputs of the language models and told ChatGPT to
+discover problems in the work of Matom\"aki.  The project began with the
+following prompt, an important human idea, which he gave to ChatGPT:
+\begin{quote}\small
+Identify works of Matomaki and detail five problems from Matomaki's works
+that seem within reach, they could be 1) an improvement of a result of
+Matomaki, 2) Answering a question of Matomaki, 3) Disproving a question of
+Matomaki.  For now you do not need to supply proofs for five such problems,
+operate on vibes and slight rigour, also try and balance it so that the
+problems are ``interesting'' to the broader mathematical community.  For
+each such problem also detail a reference that relates to Matomakis work.
+Detail the five problems in a md file, so that I can supply it towards
+future agent runs (that actually attempt to solve some of the problems).
+\end{quote}
+
+\begin{thebibliography}{99}
+
+\bibitem{GM}
+L. Guth and J. Maynard,
+\emph{New large value estimates for Dirichlet polynomials},
+Ann. of Math. (2) \textbf{203} (2026), 623--675;
+\href{https://arxiv.org/abs/2405.20552}{arXiv:2405.20552}.
+
+\bibitem{HB}
+D. R. Heath-Brown,
+\emph{The differences between consecutive smooth numbers},
+Acta Arith. \textbf{184} (2018), 267--285;
+\href{https://arxiv.org/abs/1808.02947}{arXiv:1808.02947}.
+
+\bibitem{HT}
+A. Hildebrand and G. Tenenbaum,
+\emph{Integers without large prime factors},
+J. Th\'eor. Nombres Bordeaux \textbf{5} (1993), 411--484.
+
+\bibitem{IK}
+H. Iwaniec and E. Kowalski,
+\emph{Analytic number theory},
+Amer. Math. Soc. Colloq. Publ. \textbf{53}, 2004.
+
+\bibitem{MR}
+K. Matom\"aki and M. Radziwi\l\l,
+\emph{Multiplicative functions in short intervals},
+Ann. of Math. (2) \textbf{183} (2016), 1015--1056.
+
+\bibitem{MT}
+K. Matom\"aki and J. Ter\"av\"ainen,
+\emph{Almost primes in almost all short intervals II},
+Trans. Amer. Math. Soc. \textbf{376} (2023), 5433--5459;
+\href{https://arxiv.org/abs/2207.05038}{arXiv:2207.05038}.
+
+\bibitem{Ter}
+J. Ter\"av\"ainen,
+\emph{Almost primes in almost all short intervals},
+Math. Proc. Cambridge Philos. Soc. \textbf{161} (2016), 247--281.
+
+\end{thebibliography}
+
+\end{document}
