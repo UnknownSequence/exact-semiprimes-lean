@@ -88,9 +88,14 @@ For E4 and E5 the only `a`-dependent step is the power check
 `(1 - 1/a)/4 ≥ 81/3850 > 1/100`.  None of the extensions concerns the
 Type II sums, where the improvement happens.
 
-**One point to check.**  The improvement uses Guth–Maynard's Proposition 12.1
-at amplitudes close to `N^(3/4)`.  Readers should compare the field
-`guthMaynardLongPolynomial` with the published statement.
+**Guth–Maynard transcription.**  The two Guth–Maynard fields were checked
+term by term against arXiv:2405.20552v2 (7 April 2026), Theorem 1.1 and
+Proposition 12.1; theorem numbers follow that version.  The only differences
+are that the Lean fields hold for all `T ≥ 1` rather than all large `T`
+(equivalent after enlarging the constant) and that Proposition 12.1 indexes
+`n ∼ N` while the Lean sum includes `n = N` (every coefficient sequence the
+proof uses vanishes there).  Details are in `ASSUMPTIONS.md`, section
+*Normalization of the Guth–Maynard inputs*.
 
 The new mathematics is proved, not assumed: the length-dependent
 Guth–Maynard density estimate (`Hybrid/RefinedDensity.lean`), the Type II

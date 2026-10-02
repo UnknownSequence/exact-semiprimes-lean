@@ -213,8 +213,8 @@ global axiom asserting that an `ExternalInputs` value exists.
 
 | Lean field | Exact published source | Status and role |
 |---|---|---|
-| **guthMaynardMainLargeValues** | Guth--Maynard [GM26], Theorem 1.1 | Fully quantified Lean statement; used below polynomial length T^(5/6) |
-| **guthMaynardLongPolynomial** | Guth--Maynard [GM26], Proposition 12.1, specifically its displayed “In particular” conclusion | Fully quantified Lean statement; three-term consequence for T^(5/6) ≤ N ≤ T |
+| **guthMaynardMainLargeValues** | Guth--Maynard [GM26], Theorem 1.1 | Fully quantified Lean statement; checked against arXiv v2 (see *Normalization of the Guth--Maynard inputs*); used below polynomial length T^(5/6) |
+| **guthMaynardLongPolynomial** | Guth--Maynard [GM26], Proposition 12.1, specifically its displayed “In particular” conclusion | Fully quantified Lean statement; checked against arXiv v2 (see *Normalization of the Guth--Maynard inputs*); three-term consequence for T^(5/6) ≤ N ≤ T |
 | **matomakiTeravainenLemmaThreeFour** | Matomäki--Teräväinen [MT23], Lemma 3.4, whose underlying input is Heath-Brown [HB18], Theorem 4(iii) | Fully quantified source-scoped Lean statement: `T ≥ M ≥ 1`, `ℳ ⊆ [M,T]`, `N ≥ 2`, coefficient domains and bounds, the symmetric `Re(s)=1` integral, every power of `M,N,T,|ℳ|`, `max_{n∼N}|aₙ|²`, the `η`-dependent constant, and both alternatives in the final deletion clause are explicit |
 | **hildebrandTenenbaumCorollaryOneThree** | Hildebrand--Tenenbaum [HT93], Corollary 1.3 and equation (1.14); primary saddle-point source [HT86], Theorems 1--2 | Fully quantified direct fixed-a consequence for Ψ(x,(log x)^a)=x^(1-1/a+o(1)); verbatim source transcription and local derivation remain to be split |
 | **matomakiTeravainenLemmaThreeOne** | Matomäki--Teräväinen [MT23], Lemma 3.1; cf. Teräväinen [Ter16], Lemma 1 | Fully quantified source-scoped Lean implication with the exact minorant (2.3), `c=21/10`, `a∈[c-1-10⁻⁴,c-1]`, `T₀=X^(1/1000)`, `h₁=X^(99/100)`, uniform constants replacing both `≪` symbols, and no claim in the desired wider parameter range |
@@ -514,6 +514,50 @@ MT23 lemma.  A future formalization of the book lemma and its substitution
 could discharge this field internally, but the current trust boundary does
 not assert that [IK04, Lemma 7.1] already has the MT23 normalization.
 
+## Normalization of the Guth--Maynard inputs
+
+Both fields were compared on 3 October 2026 with arXiv:2405.20552v2
+(7 April 2026): Theorem 1.1 (p. 1) and Proposition 12.1 (p. 47), the latter
+in its displayed “In particular” form.  The theorem and proposition numbers
+used here are those of arXiv v2; the numbering of the published Annals
+version has not been checked.
+
+The hypotheses and conclusions agree term by term:
+
+| | [GM26] | Lean |
+|---|---|---|
+| Points | `t_r` 1-separated in `[0,T]` | `R` one-spaced, `R ⊆ [0,T]` |
+| Coefficients | `\|b_n\| ≤ 1` | `‖b n‖ ≤ 1` on `[N,2N]` |
+| Theorem 1.1 | `R ≤ T^(o(1)) (N²V⁻² + N^(18/5)V⁻⁴ + T N^(12/5)V⁻⁴)` | same three terms with `C T^ε` |
+| Proposition 12.1, range | `T^(5/6) ≤ N ≤ T`, `V = N^σ`, `σ ≥ 7/10` | same, with `ρ` for `σ` |
+| Proposition 12.1, bound | `R ⪅ N^(2-2σ) + T^(1/2) N^(3-4σ) + T^((30σ-21)/5) N^((46-60σ)/5)` | same three terms with `C T^ε` |
+
+Two technical differences remain.  Neither changes anything the proof uses.
+
+1. **All `T ≥ 1` instead of all large `T`.**  In [GM26], `A ⪅ B` and
+   `T^(o(1))` mean `|A| ≤ C(ε) T^ε B` for every `ε > 0` and all sufficiently
+   large `T`; the Lean fields assert this for every `T ≥ 1`.  The two are
+   equivalent after enlarging `C(ε)`: for `T` below the threshold,
+   `R ≤ T + 1` is bounded, and whenever `R ≥ 1` the right-hand side is
+   bounded below by a positive constant depending only on that threshold
+   (in Theorem 1.1, `V ≤ N + 1` forces `N²V⁻² ≥ 1/4`; in Proposition 12.1,
+   `N ≤ T` is bounded, and so is `σ` when `N ≥ 2`, since `N^σ ≤ N + 1`;
+   for `N = 1` the first term equals `1`).
+2. **The endpoint `n = N`.**  Theorem 1.1 sums over `N ≤ n ≤ 2N`, and the
+   Lean fields do the same.  Proposition 12.1 writes `(b_n)_{n∼N}`, and the
+   paper's convention `A ∼ B` means `B < A ≤ 2B`; read literally, it does
+   not include `n = N`.  Every application in this project uses coefficients
+   that vanish at `n = N` (`guthMaynardNormalizedCoefficient` in
+   `Hybrid/NormalizeCoefficients.lean` is zero outside `N < n ≤ 2N`), so the
+   extra term never occurs.
+
+Where the inputs are used: Proposition 12.1 enters only for polynomials of
+length above `X^(5/6)` (in Proposition 5.1 and in the medium bins: powers
+of the first factor, and the second factor when `θ < 1/6`), with amplitude
+exponent at least `3/4`, well inside `σ ≥ 7/10`.
+The configuration that fixes the constant `1925/1763` (`θ = 2/11`,
+`σ₂ = 17/70`, length `X^(9/11)`) uses Theorem 1.1 only.
+
 ## Normalization of the sparse mean-value lemma
 
 The typed assumption is exactly the source-scoped form in [MT23, Lemma 3.4],
@@ -613,7 +657,9 @@ https://doi.org/10.1112/S0025579300012298
 
 **[GM26]** Larry Guth and James Maynard, “New large value estimates
 for Dirichlet polynomials,” *Annals of Mathematics* (2) **203** (2026),
-no. 2, 623--675. Theorem 1.1 and Proposition 12.1.
+no. 2, 623--675. Theorem 1.1 and Proposition 12.1 (numbered as in
+arXiv:2405.20552v2, 7 April 2026, against which the Lean fields were
+checked).
 https://doi.org/10.4007/annals.2026.203.2.6
 Preprint: https://arxiv.org/abs/2405.20552
 
